@@ -38,6 +38,87 @@ export default {
 
     try {
       if ((pathname === '/' || pathname === '') && request.method === 'GET') {
+        const accept = (request.headers.get('accept') || '').toLowerCase();
+        const wantsJson = accept.includes('application/json') || url.searchParams.get('format') === 'json';
+        if (!wantsJson) {
+          const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EarthRe - SLA Monitoring API</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
+    .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; max-width: 600px; width: 100%; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 18px; margin-bottom: 20px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; background: #ecfdf5; color: #047857; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 9999px; border: 1px solid #a7f3d0; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+    h1 { font-size: 18px; font-weight: 800; margin: 0; color: #0f172a; }
+    p { font-size: 13px; color: #64748b; margin: 4px 0 0 0; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+    .metric { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; }
+    .metric-title { font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase; }
+    .metric-val { font-size: 13px; color: #0f172a; font-weight: 700; margin-top: 4px; }
+    .ep-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+    .method { font-family: monospace; font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+    .get { background: #e0f2fe; color: #0369a1; }
+    .post { background: #fef3c7; color: #92400e; }
+    .path { font-family: monospace; color: #334155; font-size: 12px; }
+    .btn { display: inline-block; background: #0284c7; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 13px; margin-top: 24px; text-align: center; }
+    .btn:hover { background: #0369a1; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div>
+        <h1>EarthRe SLA Monitoring API</h1>
+        <p>Serverless Edge Processing &amp; Storage Engine</p>
+      </div>
+      <div class="badge"><span class="dot"></span> Online</div>
+    </div>
+    <div class="grid">
+      <div class="metric">
+        <div class="metric-title">Cloud Runtime</div>
+        <div class="metric-val">Cloudflare Workers (Edge)</div>
+      </div>
+      <div class="metric">
+        <div class="metric-title">Data Storage</div>
+        <div class="metric-val">Workers KV + D1 SQLite</div>
+      </div>
+    </div>
+    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin: 18px 0 8px 0;">Available API Routes</div>
+    <div class="ep-row">
+      <div><span class="method get">GET</span> <span class="path">/api/health</span></div>
+      <a href="/api/health" style="color: #0284c7; text-decoration: none; font-size: 12px; font-weight: 600;">Test &rarr;</a>
+    </div>
+    <div class="ep-row">
+      <div><span class="method get">GET</span> <span class="path">/api/uploads</span></div>
+      <a href="/api/uploads" style="color: #0284c7; text-decoration: none; font-size: 12px; font-weight: 600;">View &rarr;</a>
+    </div>
+    <div class="ep-row">
+      <div><span class="method get">GET</span> <span class="path">/api/stats</span></div>
+      <a href="/api/stats" style="color: #0284c7; text-decoration: none; font-size: 12px; font-weight: 600;">View &rarr;</a>
+    </div>
+    <div class="ep-row">
+      <div><span class="method post">POST</span> <span class="path">/api/upload</span></div>
+      <span style="font-size: 11px; color: #94a3b8;">Multipart CSV</span>
+    </div>
+    <div style="text-align: center;">
+      <a href="https://sla-monitor-dashboard.sla-monitor-backend.workers.dev" class="btn">Launch Dashboard UI &rarr;</a>
+    </div>
+  </div>
+</body>
+</html>`;
+          return new Response(html, {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/html; charset=utf-8',
+              ...corsHeaders,
+            },
+          });
+        }
+
         return jsonResponse({
           service: 'EarthRe SLA Monitoring Serverless API',
           status: 'online',
