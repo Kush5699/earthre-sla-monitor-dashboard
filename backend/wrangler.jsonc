@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sla-monitor-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-03-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sla-monitor-db",
+      "database_id": "f515291e-197c-4d63-ae24-eac6e23db631"
+    }
+  ]
+}
