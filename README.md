@@ -103,12 +103,12 @@ The brief tasks the engineer with deciding what stats matter for an on-call engi
 | **R1: Upload UI** | `frontend/src/components/UploadModal.jsx` provides drag-and-drop CSV upload with validation and issue breakdown cards. | Verified Live |
 | **R2: Stateless Serverless Cloud Function** | `backend/src/index.js` & `src/processor.js` deployed to Cloudflare Workers (`workers.dev`). Parses, validates, and normalizes data in the cloud. | Verified Live |
 | **R3: Persistent Database** | Cloudflare D1 (SQLite) with schema in `backend/schema.sql`. Persists `uploads` and `health_checks` records with indexes. | Verified Live |
-| **R4: Single-Screen Dashboard (Top: Collapsible Stats)** | `frontend/src/components/StatsSection.jsx` features toggleable collapse/expand, SLA breach badges, and per-service metrics. | Verified Live |
+| **R4: Single-Screen Dashboard (Top: Collapsible Stats)** | `frontend/src/components/StatsSection.jsx` features toggleable collapse/expand, SLA breach badges, per-service metrics, and interactive SVG visualizations (SLA Benchmark column chart, daily timeline area chart, latency distribution, and error donut chart). | Verified Live |
 | **R4: Single-Screen Dashboard (Bottom: Filterable Logs)** | `frontend/src/components/LogsSection.jsx` supports filtering by single date, date range, service, and status with pagination. | Verified Live |
-| **R5: 100% Free-Tier Deployment** | Cloudflare Workers, Cloudflare D1, and Cloudflare Pages all operate within free limits with zero cost. | Verified Live |
+| **R5: 100% Free-Tier Deployment** | Cloudflare Workers, Cloudflare D1, and Cloudflare Pages/Workers Assets all operate within free limits with zero cost. | Verified Live |
 | **R6: Live Reachable URLs** | Web Dashboard: `https://sla-monitor-dashboard.sla-monitor-backend.workers.dev` <br> API Endpoint: `https://sla-monitor-api.sla-monitor-backend.workers.dev` | Verified Live |
-| **R7: Data Quality Problem Handling** | Comprehensive data cleaning engine in `backend/src/processor.js` handles timezones, latency units, negative latency, 999 codes, and duplicates. | Verified (18 Unit Tests) |
-| **R8: Multi-Day Dynamic CSV Support** | Verified across all 5 provided CSV files (9d, 12d, 14d, 21d, and 30d with 15,577 rows). | Verified Live |
+| **R7: Data Quality Problem Handling** | Comprehensive data cleaning engine in `backend/src/processor.js` handles timezones, latency units, negative latency, 999 codes, and duplicates. | Verified (25 Unit & Stress Tests) |
+| **R8: Multi-Day Dynamic CSV Support** | Verified across all 5 provided CSV files (9d, 12d, 14d, 21d, and 30d with 15,577 rows) plus synthetic stress test cases. | Verified Live |
 | **R9: Incremental Commit History** | Structured git commit log documenting milestones from initialization to deployment. | Verified in Git |
 
 ---
@@ -123,7 +123,7 @@ The brief tasks the engineer with deciding what stats matter for an on-call engi
 ```bash
 cd backend
 npm install
-npm test                  # Runs 18 unit tests on data processing engine
+npm test                  # Runs 25 unit and stress tests on data processing engine
 npx wrangler dev          # Starts local Cloudflare Worker with local D1 emulation
 ```
 
