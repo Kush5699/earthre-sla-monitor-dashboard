@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, UploadCloud, Server, CheckCircle2, ChevronDown } from 'lucide-react';
+import { Activity, UploadCloud, ChevronDown } from 'lucide-react';
 
 export default function Navbar({
   uploads = [],
@@ -25,14 +25,14 @@ export default function Navbar({
             </div>
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <span className={`inline-block w-2 h-2 rounded-full ${backendConnected ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-              <span>{backendConnected ? 'Cloudflare Workers (APAC) • D1 SQLite' : 'Connecting to Cloud...'}</span>
+              <span>{backendConnected ? 'Cloudflare Serverless Engine • APAC Edge' : 'Connecting to Cloud...'}</span>
             </div>
           </div>
         </div>
 
-        {/* Dataset Switcher & Upload Action */}
+        {/* Dataset Switcher (only shown when 2 or more CSVs uploaded) & Upload Action */}
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          {uploads.length > 0 && (
+          {uploads.length > 1 && (
             <div className="relative flex-1 sm:w-64">
               <select
                 value={selectedUploadId || ''}

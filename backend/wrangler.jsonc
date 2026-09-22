@@ -10,5 +10,11 @@
       "database_name": "sla-monitor-db",
       "database_id": "f515291e-197c-4d63-ae24-eac6e23db631"
     }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "SLA_STORAGE",
+      "id": "dc84ec38b8044aef83b09e7d05180fd6"
+    }
   ]
 }

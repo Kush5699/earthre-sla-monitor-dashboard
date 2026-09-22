@@ -28,9 +28,12 @@ export default function App() {
       const uploadsList = await fetchUploads();
       setUploads(uploadsList);
 
-      if (uploadsList.length > 0) {
-        setSelectedUploadId(uploadsList[0].id);
-        await loadStats(uploadsList[0].id);
+      const validUploads = uploadsList.filter((u) => u.clean_rows > 10);
+      const initialUpload = validUploads.length > 0 ? validUploads[0] : uploadsList[0];
+
+      if (initialUpload) {
+        setSelectedUploadId(initialUpload.id);
+        await loadStats(initialUpload.id);
       }
     } catch (err) {
       console.error('Failed to initialize app:', err);
