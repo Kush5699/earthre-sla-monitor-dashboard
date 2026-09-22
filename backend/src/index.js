@@ -1,4 +1,5 @@
 import { processCSV } from './processor.js';
+import { DASHBOARD_HTML } from './dashboard_html.js';
 
 /**
  * Cloudflare Worker for SLA Monitoring Dashboard
@@ -104,8 +105,9 @@ export default {
       <div><span class="method post">POST</span> <span class="path">/api/upload</span></div>
       <span style="font-size: 11px; color: #94a3b8;">Multipart CSV</span>
     </div>
-    <div style="text-align: center;">
-      <a href="https://sla-monitor-dashboard.sla-monitor-backend.workers.dev" class="btn">Launch Dashboard UI &rarr;</a>
+    <div style="text-align: center; margin-top: 24px; display: flex; flex-direction: column; gap: 8px;">
+      <a href="/dashboard" class="btn" style="margin-top: 0;">Launch Interactive Dashboard (Instant) &rarr;</a>
+      <a href="https://sla-monitor-dashboard.sla-monitor-backend.workers.dev" target="_blank" style="font-size: 12px; color: #64748b; text-decoration: none;">Open Dedicated Edge Mirror &nearr;</a>
     </div>
   </div>
 </body>
@@ -146,6 +148,17 @@ export default {
           timestamp: new Date().toISOString(),
           kv_storage: env.SLA_STORAGE ? 'connected' : 'unbound',
           d1_database: env.DB ? 'connected' : 'unbound',
+        });
+      }
+ 
+      if ((pathname === '/dashboard' || pathname === '/app') && request.method === 'GET') {
+        return new Response(DASHBOARD_HTML, {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            ...corsHeaders,
+          },
         });
       }
 
@@ -498,6 +511,13 @@ async function handleStats(url, env) {
 
     const issues = upload.issues_json ? JSON.parse(upload.issues_json) : [];
     const stats = computeStatsFromRecords(recordsQuery.results || [], upload, issues);
+    if (env.SLA_STORAGE) {
+      try {
+        await env.SLA_STORAGE.put(`upload:${uploadId}:stats`, JSON.stringify(stats));
+      } catch (e) {
+        console.log('KV cache error:', e);
+      }
+    }
     return jsonResponse(stats);
   }
 
@@ -643,11 +663,34 @@ async function handleListUploads(env) {
   if (env.SLA_STORAGE) {
     try {
       const list = await env.SLA_STORAGE.get('uploads_index', 'json');
-      if (Array.isArray(list)) {
+      if (Array.isArray(list) && list.length > 0) {
         return jsonResponse({ uploads: list });
       }
     } catch (e) {
       console.log('KV list error:', e);
+    }
+  }
+
+  // Fallback to D1 persistent relational database
+  if (env.DB) {
+    try {
+      const res = await env.DB.prepare(
+        'SELECT id, filename, total_rows, clean_rows, dropped_rows, start_date, end_date, uploaded_at FROM uploads ORDER BY uploaded_at DESC LIMIT 20'
+      ).all();
+      if (res.results && res.results.length > 0) {
+        const uploads = res.results.map(u => ({
+          id: u.id,
+          filename: u.filename,
+          total_rows: u.total_rows,
+          clean_rows: u.clean_rows,
+          dropped_rows: u.dropped_rows,
+          date_range: { start: u.start_date, end: u.end_date },
+          uploaded_at: u.uploaded_at,
+        }));
+        return jsonResponse({ uploads });
+      }
+    } catch (e) {
+      console.log('D1 uploads fallback error:', e);
     }
   }
 

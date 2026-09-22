@@ -2,7 +2,9 @@
 
 An end-to-end, production-grade SLA monitoring system designed to turn raw, multi-agent health check logs into trustworthy availability numbers and actionable billing credit insights.
 
-**Live Deployment URL:** [https://sla-monitor-dashboard.sla-monitor-backend.workers.dev](https://sla-monitor-dashboard.sla-monitor-backend.workers.dev)  
+**Live Dashboard (Direct Edge):** [https://sla-monitor-api.sla-monitor-backend.workers.dev/dashboard](https://sla-monitor-api.sla-monitor-backend.workers.dev/dashboard)  
+**Live Dashboard (Dedicated Mirror):** [https://sla-monitor-dashboard.sla-monitor-backend.workers.dev](https://sla-monitor-dashboard.sla-monitor-backend.workers.dev)  
+**Live Dashboard (GitHub Pages Mirror):** [https://kush5699.github.io/earthre-sla-monitor-dashboard/](https://kush5699.github.io/earthre-sla-monitor-dashboard/)  
 **Live Backend API URL:** [https://sla-monitor-api.sla-monitor-backend.workers.dev](https://sla-monitor-api.sla-monitor-backend.workers.dev)
 
 ---
