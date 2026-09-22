@@ -10,6 +10,22 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [errorMessage, setErrorMessage] = useState('');
   const fileInputRef = useRef(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedFile(null);
+      setUploadResult(null);
+      setErrorMessage('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setSelectedFile(null);
+    setUploadResult(null);
+    setErrorMessage('');
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   const handleDrag = (e) => {
@@ -95,7 +111,7 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -251,7 +267,7 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
             <>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={uploading}
                 className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               >
@@ -281,13 +297,22 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
               </button>
             </>
           ) : (
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-lg shadow-sm transition-all cursor-pointer"
-            >
-              Open Dashboard
-            </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer border border-slate-300"
+              >
+                Upload Another File
+              </button>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="px-5 py-2 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-lg shadow-sm transition-all cursor-pointer"
+              >
+                Open Dashboard
+              </button>
+            </div>
           )}
         </div>
       </div>
