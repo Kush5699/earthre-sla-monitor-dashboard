@@ -37,6 +37,28 @@ export default {
     const pathname = url.pathname;
 
     try {
+      if ((pathname === '/' || pathname === '') && request.method === 'GET') {
+        return jsonResponse({
+          service: 'EarthRe SLA Monitoring Serverless API',
+          status: 'online',
+          runtime: 'Cloudflare Workers (Edge Serverless)',
+          storage: {
+            kv_storage: env.SLA_STORAGE ? 'connected' : 'unbound',
+            d1_database: env.DB ? 'connected' : 'unbound',
+          },
+          endpoints: {
+            health: 'GET /api/health',
+            upload: 'POST /api/upload (multipart/form-data with "file")',
+            stats: 'GET /api/stats?upload_id={id}',
+            logs: 'GET /api/logs?upload_id={id}&date={YYYY-MM-DD}&service_id={id}&status={healthy|unhealthy}&page={n}&limit={n}',
+            uploads: 'GET /api/uploads',
+            reset: 'POST /api/reset',
+          },
+          frontend_dashboard: 'https://sla-monitor-dashboard.sla-monitor-backend.workers.dev',
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       if (pathname === '/api/health' && request.method === 'GET') {
         return jsonResponse({
           status: 'healthy',
