@@ -10,10 +10,19 @@ import {
   Calendar,
   AlertTriangle,
   Zap,
+  BarChart3,
+  TrendingUp,
+  Gauge,
+  ShieldAlert,
 } from 'lucide-react';
+import AvailabilityChart from './AvailabilityChart';
+import DailyTrendChart from './DailyTrendChart';
+import LatencyChart from './LatencyChart';
+import ErrorBreakdownChart from './ErrorBreakdownChart';
 
 export default function StatsSection({ stats, loading }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [chartTab, setChartTab] = useState('availability'); // 'availability' | 'trends' | 'latency' | 'errors'
 
   if (loading) {
     return (
@@ -38,7 +47,7 @@ export default function StatsSection({ stats, loading }) {
     );
   }
 
-  const { overall, services = [] } = stats;
+  const { overall, services = [], daily_trends = [] } = stats;
   const isCreditTriggered = overall.services_breaching_sla > 0;
 
   return (
@@ -180,13 +189,106 @@ export default function StatsSection({ stats, loading }) {
             </div>
           </div>
 
-          {/* Per-Service Health Breakdown Cards */}
+          {/* Interactive Visual Analytics & Charts Section */}
+          <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/40 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-sky-600" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Interactive Visual Analytics &amp; Charts
+                </h3>
+              </div>
+
+              {/* Chart Tabs */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setChartTab('availability')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    chartTab === 'availability'
+                      ? 'bg-sky-600 text-white shadow-xs'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  <span>SLA Target Benchmark</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setChartTab('trends')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    chartTab === 'trends'
+                      ? 'bg-sky-600 text-white shadow-xs'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>Daily Timeline</span>
+                  {daily_trends.length > 0 && (
+                    <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${
+                      chartTab === 'trends' ? 'bg-sky-700 text-white' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {daily_trends.length}d
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setChartTab('latency')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    chartTab === 'latency'
+                      ? 'bg-sky-600 text-white shadow-xs'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <Gauge className="w-3.5 h-3.5" />
+                  <span>Latency Analysis</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setChartTab('errors')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    chartTab === 'errors'
+                      ? 'bg-sky-600 text-white shadow-xs'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>Outage Anatomy</span>
+                  {isCreditTriggered && (
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Rendered Chart */}
+            <div className="pt-1">
+              {chartTab === 'availability' && (
+                <AvailabilityChart services={services} slaTarget={overall.sla_target} />
+              )}
+              {chartTab === 'trends' && (
+                <DailyTrendChart dailyTrends={daily_trends} services={services} slaTarget={overall.sla_target} />
+              )}
+              {chartTab === 'latency' && (
+                <LatencyChart services={services} />
+              )}
+              {chartTab === 'errors' && (
+                <ErrorBreakdownChart services={services} />
+              )}
+            </div>
+          </div>
+
+          {/* SERVICE BREAKDOWN & OUTAGE IMPACT (Placed right after the charts) */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Service Breakdown & Outage Impact
+                SERVICE BREAKDOWN &amp; OUTAGE IMPACT
               </h3>
-              <span className="text-[11px] text-slate-500">Target Availability: 99.900%</span>
+              <span className="text-[11px] text-slate-500">Target Availability: {overall.sla_target}%</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">

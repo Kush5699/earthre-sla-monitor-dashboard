@@ -13,14 +13,20 @@ export function parseCSVToRows(csvText) {
     return [];
   }
 
+  // Strip UTF-8 Byte Order Mark (BOM) if present (common in Windows/Excel CSVs)
+  let text = csvText;
+  if (text.charCodeAt(0) === 0xfeff) {
+    text = text.slice(1);
+  }
+
   const rows = [];
   let currentRow = [];
   let currentField = '';
   let inQuotes = false;
 
-  const len = csvText.length;
+  const len = text.length;
   for (let i = 0; i < len; i++) {
-    const char = csvText[i];
+    const char = text[i];
 
     if (inQuotes) {
       if (char === '"') {
@@ -252,29 +258,31 @@ export function processCSV(csvText, filename = 'monitoring_checks.csv') {
     throw new Error('CSV file contains no data rows besides header');
   }
 
-  const rawHeaders = nonEmptyRows[0].map(h => h.trim().toLowerCase());
+  const rawHeaders = nonEmptyRows[0].map(h => h.trim().toLowerCase().replace(/^\uFEFF/, ''));
   const headerMap = {};
   rawHeaders.forEach((h, idx) => {
     headerMap[h] = idx;
   });
 
-  // Verify mandatory columns
-  const hasTimestamp = 'timestamp' in headerMap;
-  const hasStatusCode = 'status_code' in headerMap || 'status' in headerMap;
-  const hasServiceId = 'service_id' in headerMap || 'service' in headerMap;
+  const findCol = (aliases) => {
+    for (const a of aliases) {
+      if (a in headerMap) return headerMap[a];
+    }
+    return undefined;
+  };
 
-  if (!hasTimestamp || !hasStatusCode) {
+  const tsIdx = findCol(['timestamp', 'time', 'datetime', 'date', 'ts']);
+  const statusIdx = findCol(['status_code', 'status', 'statuscode', 'http_status', 'code']);
+  const svcIdIdx = findCol(['service_id', 'serviceid', 'service', 'service_name', 'servicename']);
+  const svcNameIdx = findCol(['service_name', 'servicename', 'name', 'service_display_name']);
+  const latIdx = findCol(['latency', 'latency_ms', 'latency_seconds', 'duration', 'response_time']);
+  const unitIdx = findCol(['latency_unit', 'unit', 'lat_unit']);
+  const agentIdx = findCol(['agent', 'agent_id', 'probe', 'collector']);
+  const regionIdx = findCol(['region', 'location', 'datacenter', 'dc']);
+
+  if (tsIdx === undefined || statusIdx === undefined) {
     throw new Error('CSV is missing required columns: timestamp and status_code');
   }
-
-  const tsIdx = headerMap['timestamp'];
-  const statusIdx = headerMap['status_code'] !== undefined ? headerMap['status_code'] : headerMap['status'];
-  const svcIdIdx = headerMap['service_id'] !== undefined ? headerMap['service_id'] : headerMap['service'];
-  const svcNameIdx = headerMap['service_name'];
-  const latIdx = headerMap['latency'];
-  const unitIdx = headerMap['latency_unit'];
-  const agentIdx = headerMap['agent'];
-  const regionIdx = headerMap['region'];
 
   const cleanedRecords = [];
   const droppedRecords = [];

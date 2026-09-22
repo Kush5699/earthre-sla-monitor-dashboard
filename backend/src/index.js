@@ -163,6 +163,50 @@ function computeStatsFromRecords(records, uploadMetadata, issues) {
 
   const overallAvailability = totalChecks > 0 ? Math.round((totalHealthy / totalChecks) * 100000) / 1000 : 0;
 
+  // Compute daily trends for visual time-series charts
+  const dailyMap = {};
+  for (const rec of records) {
+    const d = rec.check_date;
+    if (!d) continue;
+    if (!dailyMap[d]) {
+      dailyMap[d] = {
+        date: d,
+        total_checks: 0,
+        healthy_checks: 0,
+        error_checks: 0,
+        services: {},
+      };
+    }
+    const day = dailyMap[d];
+    day.total_checks++;
+    if (rec.is_healthy === 1) {
+      day.healthy_checks++;
+    } else {
+      day.error_checks++;
+    }
+
+    if (!day.services[rec.service_id]) {
+      day.services[rec.service_id] = { total: 0, healthy: 0, errors: 0 };
+    }
+    day.services[rec.service_id].total++;
+    if (rec.is_healthy === 1) {
+      day.services[rec.service_id].healthy++;
+    } else {
+      day.services[rec.service_id].errors++;
+    }
+  }
+
+  const dailyTrends = Object.values(dailyMap)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(d => ({
+      date: d.date,
+      total_checks: d.total_checks,
+      healthy_checks: d.healthy_checks,
+      error_checks: d.error_checks,
+      availability_pct: d.total_checks > 0 ? Math.round((d.healthy_checks / d.total_checks) * 100000) / 1000 : 0,
+      services: d.services,
+    }));
+
   return {
     upload_id: uploadMetadata.id,
     filename: uploadMetadata.filename,
@@ -180,6 +224,7 @@ function computeStatsFromRecords(records, uploadMetadata, issues) {
       },
     },
     services,
+    daily_trends: dailyTrends,
     issues_summary: issues || [],
   };
 }
