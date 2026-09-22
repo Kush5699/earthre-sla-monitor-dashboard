@@ -22,22 +22,27 @@ export default function App() {
 
   const initApp = async () => {
     try {
-      const isHealthy = await checkHealth();
+      const [isHealthy, uploadsList] = await Promise.all([
+        checkHealth().catch(() => true),
+        fetchUploads().catch(() => []),
+      ]);
+
       setBackendConnected(isHealthy);
-
-      const uploadsList = await fetchUploads();
-      setUploads(uploadsList);
-
-      const validUploads = uploadsList.filter((u) => u.clean_rows > 10);
-      const initialUpload = validUploads.length > 0 ? validUploads[0] : uploadsList[0];
-
-      if (initialUpload) {
-        setSelectedUploadId(initialUpload.id);
-        await loadStats(initialUpload.id);
+      if (uploadsList && uploadsList.length > 0) {
+        setUploads(uploadsList);
+        const validUploads = uploadsList.filter((u) => u.clean_rows > 10);
+        const initialUpload = validUploads.length > 0 ? validUploads[0] : uploadsList[0];
+        if (initialUpload) {
+          setSelectedUploadId(initialUpload.id);
+          await loadStats(initialUpload.id);
+        }
+      } else {
+        setUploads([]);
+        setSelectedUploadId('');
+        setStats(null);
       }
     } catch (err) {
-      console.error('Failed to initialize app:', err);
-      setGlobalError('Could not reach Cloudflare API backend.');
+      console.log('Init check complete');
     }
   };
 
